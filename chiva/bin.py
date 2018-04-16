@@ -1,34 +1,30 @@
-from typing import Union
+from typing import List, TypeVar
 
 
-class Bin(object):
-    def __init__(self, data=None):
-        self.data = data or b""
+TBits = List[int]  # Should be 1 or 0 only.
 
-    @property
-    def data(self) -> bytes:
-        return self._data
-    @data.setter
-    def data(self, data: bytes):
-        self._data = data
-        self._integer = self.bytes_to_integer(self.data)
 
-    @property
-    def integer(self) -> int:
-        return self._integer
+class Bits(object):
+    """ Bits containers. Internally stores bits as a boolean list. """
+
+    def __init__(self) -> None:
+        self.bools = []  # type: TBits
+
+    def __str__(self) -> str:
+        return "".join([str(b) for b in self.bools])
 
     @staticmethod
-    def bytes_to_integer(data: bytes, byteorder: Union["little", "big"] ="little") -> int:
-        return int.from_bytes(data, byteorder=byteorder)
+    def from_bytes(data: bytes, byteorder: str ='big') -> 'Bits':
+        bits = Bits()
+        num_bits = len(data) * 8
+        integer = int.from_bytes(data, byteorder)
+        while integer or num_bits:
+            bits.bools.insert(0, integer & 1)
+            integer = integer >> 1
+            num_bits -= 1
+        return bits
 
-    def binary_str(self, bits_per_byte: int =8, sep: str ="") -> str:
-        mask = 2 ** bits_per_byte - 1
-        data = self.integer
-        results = []
-        while data or not results:
-            masked = data & mask
-            byte_str = str(bin(masked)[2:]).zfill(bits_per_byte)
-            results.append(byte_str)
-            data = data >> bits_per_byte
-        result = sep.join(results)
-        return result
+    @staticmethod
+    def from_hexstring(data: str) -> 'Bits':
+        bits = Bits()
+        return bits
