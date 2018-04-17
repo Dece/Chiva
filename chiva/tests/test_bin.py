@@ -64,10 +64,30 @@ def test_from_hexstring():
     assert str(Bits.from_hexstring("")) == ""
     assert str(Bits.from_hexstring("0x00")) == "00000000"
     assert str(Bits.from_hexstring("DEAD")) == DEAD_BITS
+    assert str(Bits.from_hexstring("DE AD")) == DEAD_BITS
 
 
 def test_from_bitstring():
     assert str(Bits.from_bitstring("")) == ""
     assert str(Bits.from_bitstring("1")) == "1"
     assert str(Bits.from_bitstring("11010100010")) == "11010100010"
+    assert str(Bits.from_bitstring("110 10100010")) == "11010100010"
+    assert str(Bits.from_bitstring("110 1010 0010")) == "11010100010"
+    assert str(Bits.from_bitstring("110,1010,0010")) == "11010100010"
     assert str(Bits.from_bitstring("0b11010100010")) == "11010100010"
+
+
+def test_parity_bit():
+    assert Bits.parity_bit([]) == 1
+    assert Bits.parity_bit([0, 0, 0, 0]) == 1
+    assert Bits.parity_bit([0, 0, 0, 1]) == 0
+    assert Bits.parity_bit([0, 0, 1, 0]) == 0
+    assert Bits.parity_bit([0, 0, 1, 1]) == 1
+    assert Bits.parity_bit([1, 1, 1, 1]) == 1
+    assert Bits.parity_bit([1, 1, 1, 1, 0]) == 1
+    assert Bits.parity_bit([1, 1, 1, 1, 0, 0]) == 1
+    assert Bits.parity_bit([1, 1, 1, 1, 0, 0, 1]) == 0
+
+    assert Bits.parity_bit([], parity='even') == 0
+    assert Bits.parity_bit([1, 1, 1, 1], parity='even') == 0
+    assert Bits.parity_bit([1, 1, 1, 1, 0, 0, 1], parity='even') == 1

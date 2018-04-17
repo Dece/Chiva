@@ -1,15 +1,16 @@
 import binascii
+import string
 from typing import List, TypeVar, Union
 
 
-TBits = List[int]  # Should be 1 or 0 only.
+TBools = List[int]  # Should be 1 or 0 only.
 
 
 class Bits(object):
-    """ Bits containers. Internally stores bits as a boolean list. """
+    """ Bits containers. Internally stores bits as an int list. """
 
     def __init__(self) -> None:
-        self.bools = []  # type: TBits
+        self.bools = []  # type: TBools
 
     def __str__(self) -> str:
         return "".join([str(b) for b in self.bools])
@@ -54,14 +55,27 @@ class Bits(object):
         """ Convert a str with hex digits to Bits. """
         if data.lower().startswith('0x'):
             data = data[2:]
+        data = ''.join([c for c in data if c in string.hexdigits])
         data_bytes = binascii.unhexlify(data)
         return Bits.from_bytes(data_bytes)
 
     @staticmethod
     def from_bitstring(data: str) -> 'Bits':
         """ Convert a str with 0 and 1 to Bits. """
-        if data.startswith('0b'):
+        if data.lower().startswith('0b'):
             data = data[2:]
         bits = Bits()
         bits.bools = [int(bit) for bit in data if bit in ('0', '1')]
         return bits
+
+    @staticmethod
+    def parity_bit(bools: TBools, parity: str ='odd') -> int:
+        """ Return the parity bit for bools, or 1 on empty lists.
+        
+        The parity parameter can be 'odd' (default) or 'even', determining the
+        evenness of the result.
+        """
+        pb = 1 if parity == 'odd' else 0
+        for b in bools:
+            pb ^= b
+        return pb
