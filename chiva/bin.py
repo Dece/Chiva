@@ -7,7 +7,11 @@ TBools = List[int]  # Should be 1 or 0 only.
 
 
 class Bits(object):
-    """ Bits containers. Internally stores bits as an int list. """
+    """ Bits containers. Internally stores bits as an int list.
+
+    The Bits class is more a collection of static methods acting on TBools
+    objects and data rather than a regular OOP class.
+    """
 
     def __init__(self) -> None:
         self.bools = []  # type: TBools
@@ -69,8 +73,13 @@ class Bits(object):
         return bits
 
     @staticmethod
+    def xor_bools(bools_a: TBools, bools_b: TBools) -> TBools:
+        """ XOR two TBools, same length is assumed. """
+        return [a ^ b for a, b in zip(bools_a, bools_b)]
+
+    @staticmethod
     def parity_bit(bools: TBools, parity: str ='odd') -> int:
-        """ Return the parity bit for bools, or 1 on empty lists.
+        """ Return the parity bit for bools.
         
         The parity parameter can be 'odd' (default) or 'even', determining the
         evenness of the result.
@@ -79,3 +88,22 @@ class Bits(object):
         for b in bools:
             pb ^= b
         return pb
+
+    @staticmethod
+    def lrc(bools: TBools, bits_per_char: int) -> Union[TBools, None]:
+        """ Return the LRC for bools, or None on error.
+        
+        It assumes there are bits_per_char bits for each character inside bools.
+        If bools length can't be divded by bits_per_char, return None.
+        """
+        num_bools = len(bools)
+        if num_bools == 0 or bits_per_char == 0 or num_bools % bits_per_char != 0:
+            return None
+
+        lrc_char = bools[:bits_per_char]  # Init LRC with first char
+        num_chars = num_bools // bits_per_char
+        for _ in range(1, num_chars):
+            bools = bools[bits_per_char:]
+            char = bools[:bits_per_char]
+            lrc_char = Bits.xor_bools(lrc_char, char)
+        return lrc_char

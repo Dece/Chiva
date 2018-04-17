@@ -77,6 +77,15 @@ def test_from_bitstring():
     assert str(Bits.from_bitstring("0b11010100010")) == "11010100010"
 
 
+def test_xor_bools():
+    assert Bits.xor_bools([], []) == []
+    assert Bits.xor_bools([0], [0]) == [0]
+    assert Bits.xor_bools([1], [0]) == [1]
+    assert Bits.xor_bools([0], [1]) == [1]
+    assert Bits.xor_bools([1], [1]) == [0]
+    assert Bits.xor_bools([0, 0, 1, 0, 1], [1, 1, 1, 1, 0]) == [1, 1, 0, 1, 1]
+
+
 def test_parity_bit():
     assert Bits.parity_bit([]) == 1
     assert Bits.parity_bit([0, 0, 0, 0]) == 1
@@ -91,3 +100,27 @@ def test_parity_bit():
     assert Bits.parity_bit([], parity='even') == 0
     assert Bits.parity_bit([1, 1, 1, 1], parity='even') == 0
     assert Bits.parity_bit([1, 1, 1, 1, 0, 0, 1], parity='even') == 1
+
+
+def test_lrc():
+    assert Bits.lrc([], 0) == None
+    assert Bits.lrc([], 4) == None
+    assert Bits.lrc([0], 0) == None
+
+    bools = [
+        0, 0, 0, 0,
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        1, 1, 0, 0,
+    ]
+    assert Bits.lrc(bools, 4) == [0, 0, 0, 0]
+    assert Bits.lrc(bools, 6) == None
+    assert Bits.lrc(bools, 8) == [0, 1, 0, 0, 0, 1, 0, 0]
+
+    bools_with_parity = [
+        0, 0, 0, 0, 1,
+        1, 0, 0, 0, 0,
+        0, 1, 0, 0, 0,
+        1, 1, 0, 0, 1,
+    ]
+    assert Bits.lrc(bools_with_parity, 5) == [0, 0, 0, 0, 0]
