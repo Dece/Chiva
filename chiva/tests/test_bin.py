@@ -8,12 +8,17 @@ DEAD_BITS = "1101111010101101"  # 0xDEAD
 
 def test_bools():
     assert Bits().bools == []
+    assert Bits(0).bools == [0]
+    assert Bits(1).bools == [1]
+    assert Bits(10).bools == [1, 0, 1, 0]
 
 
 def test_set_value():
     bits = Bits()
     bits.set_value(0)
     assert bits.bools == []
+    bits.set_value(0, explicit_zero=True)
+    assert bits.bools == [0]
     bits.set_value(1)
     assert bits.bools == [1]
     bits.set_value(10)
@@ -47,8 +52,6 @@ def test_str():
     assert str(bits) == "1"
     bits.bools = [1, 1, 0, 1]
     assert str(bits) == "1101"
-    bits.bools = DEAD_BITS
-    assert str(bits) == "1101111010101101"
 
 
 def test_from_bytes():
@@ -77,50 +80,96 @@ def test_from_bitstring():
     assert str(Bits.from_bitstring("0b11010100010")) == "11010100010"
 
 
-def test_xor_bools():
-    assert Bits.xor_bools([], []) == []
-    assert Bits.xor_bools([0], [0]) == [0]
-    assert Bits.xor_bools([1], [0]) == [1]
-    assert Bits.xor_bools([0], [1]) == [1]
-    assert Bits.xor_bools([1], [1]) == [0]
-    assert Bits.xor_bools([0, 0, 1, 0, 1], [1, 1, 1, 1, 0]) == [1, 1, 0, 1, 1]
+def test_xor():
+    b_null = Bits()
+    b_0 = Bits.from_bitstring("0")
+    b_1 = Bits.from_bitstring("1")
+    
+    assert b_null.xor(b_null) == []
+    assert b_0.xor(b_0) == [0]
+    assert b_1.xor(b_0) == [1]
+    assert b_0.xor(b_1) == [1]
+    assert b_1.xor(b_1) == [0]
+
+    b_00101 = Bits.from_bitstring("00101")
+    b_11110 = Bits.from_bitstring("11110")
+    assert b_00101.xor(b_11110) == [1, 1, 0, 1, 1]
 
 
 def test_parity_bit():
-    assert Bits.parity_bit([]) == 1
-    assert Bits.parity_bit([0, 0, 0, 0]) == 1
-    assert Bits.parity_bit([0, 0, 0, 1]) == 0
-    assert Bits.parity_bit([0, 0, 1, 0]) == 0
-    assert Bits.parity_bit([0, 0, 1, 1]) == 1
-    assert Bits.parity_bit([1, 1, 1, 1]) == 1
-    assert Bits.parity_bit([1, 1, 1, 1, 0]) == 1
-    assert Bits.parity_bit([1, 1, 1, 1, 0, 0]) == 1
-    assert Bits.parity_bit([1, 1, 1, 1, 0, 0, 1]) == 0
+    assert Bits().parity_bit() == 1
+    assert Bits(0b0000).parity_bit() == 1
+    assert Bits(0b0001).parity_bit() == 0
+    assert Bits(0b0010).parity_bit() == 0
+    assert Bits(0b0011).parity_bit() == 1
+    assert Bits(0b1111).parity_bit() == 1
+    assert Bits(0b11110).parity_bit() == 1
+    assert Bits(0b111100).parity_bit() == 1
+    assert Bits(0b1111001).parity_bit() == 0
 
-    assert Bits.parity_bit([], parity='even') == 0
-    assert Bits.parity_bit([1, 1, 1, 1], parity='even') == 0
-    assert Bits.parity_bit([1, 1, 1, 1, 0, 0, 1], parity='even') == 1
+    assert Bits().parity_bit(parity='even') == 0
+    assert Bits(0b1111).parity_bit(parity='even') == 0
+    assert Bits(0b1111001).parity_bit(parity='even') == 1
 
 
 def test_lrc():
-    assert Bits.lrc([], 0) == None
-    assert Bits.lrc([], 4) == None
-    assert Bits.lrc([0], 0) == None
+    b = Bits()
+    assert b.lrc(0) == None
+    assert b.lrc(4) == None
 
-    bools = [
+    b.bools = [0]
+    assert b.lrc(0) == None
+    assert b.lrc(1) == [0]
+
+    b.bools = [
         0, 0, 0, 0,
         1, 0, 0, 0,
         0, 1, 0, 0,
         1, 1, 0, 0,
     ]
-    assert Bits.lrc(bools, 4) == [0, 0, 0, 0]
-    assert Bits.lrc(bools, 6) == None
-    assert Bits.lrc(bools, 8) == [0, 1, 0, 0, 0, 1, 0, 0]
+    assert b.lrc(4) == [0, 0, 0, 0]
+    assert b.lrc(6) == None
+    assert b.lrc(8) == [0, 1, 0, 0, 0, 1, 0, 0]
 
-    bools_with_parity = [
+    # With parity bits
+    b.bools = [
         0, 0, 0, 0, 1,
         1, 0, 0, 0, 0,
         0, 1, 0, 0, 0,
         1, 1, 0, 0, 1,
     ]
-    assert Bits.lrc(bools_with_parity, 5) == [0, 0, 0, 0, 0]
+    assert b.lrc(5) == [0, 0, 0, 0, 0]
+
+
+def test_luhn():
+    b = Bits(1111)
+    # TODO
+
+
+def test_pack_chars():
+    assert Bits().pack_chars(1) == None
+    assert Bits(0).pack_chars(1) == [0]
+    assert Bits(1).pack_chars(1) == [1]
+    assert Bits(2).pack_chars(1) == [1, 0]
+    assert Bits(3).pack_chars(1) == [1, 1]
+
+    assert Bits(0b11001010).pack_chars(1) == [1, 1, 0, 0, 1, 0, 1, 0]
+    assert Bits(0b11001010).pack_chars(2) == [3, 0, 2, 2]
+    assert Bits(0b11001010).pack_chars(4) == [12, 10]
+    assert Bits(0b11001010).pack_chars(8) == [202]
+    assert Bits(0b11001010).pack_chars(9) == None
+
+    assert Bits(0b110010101).pack_chars(9) == [405]
+    assert Bits(0b110010101).pack_chars(3) == [0b110, 0b010, 0b101]
+    assert Bits(0b110010101).pack_chars(2) == None
+
+
+def test_bools_to_int():
+    assert Bits.bools_to_int([0]) == 0
+    assert Bits.bools_to_int([1]) == 1
+    assert Bits.bools_to_int([0, 1]) == 1
+    assert Bits.bools_to_int([1, 0]) == 2
+    assert Bits.bools_to_int([1, 0, 0, 1]) == 0b1001
+    assert Bits.bools_to_int([1, 0, 1, 1]) == 0b1011
+    assert Bits.bools_to_int([1, 0, 1, 1], byteorder='little') == 0b1101
+    assert Bits.bools_to_int([1]*8) == 0xFF
