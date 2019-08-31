@@ -1,6 +1,6 @@
 import pytest
 
-from chiva.bin import Bits
+from chiva.bits import Bits
 
 
 DEAD_BITS = "1101111010101101"  # 0xDEAD
