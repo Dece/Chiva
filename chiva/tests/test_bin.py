@@ -54,6 +54,14 @@ def test_str():
     assert str(bits) == "1101"
 
 
+def test_format():
+    bits = Bits()
+    assert bits.format(4) == bits.format(5) == ""
+    bits = Bits.from_hexstring("B4B120")
+    assert bits.format(4) == "1011 0100 1011 0001 0010 0000"
+    assert bits.format(5) == "10110 10010 11000 10010 0000"
+
+
 def test_from_bytes():
     assert str(Bits.from_bytes(b"")) == ""
     assert str(Bits.from_bytes(b"\x00")) == "00000000"

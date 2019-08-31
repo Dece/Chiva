@@ -65,6 +65,15 @@ class Bits(object):
             else:
                 break
 
+    def format(self, group_by: int, sep: str =' ') -> str:
+        packed = str(self)
+        formatted = ""
+        for i, b in enumerate(packed):
+            if i > 0 and i % group_by == 0:
+                formatted += sep
+            formatted += b
+        return formatted
+
     ################################
     # Factories
     ################################
